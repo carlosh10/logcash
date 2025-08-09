@@ -1,0 +1,225 @@
+version: "1.0"
+project:
+  name: logcash_v1
+  description: >
+    Build the Log.Cash v1.0 internal blueprint deliverables and launch kit using a
+    fully Bacen-compliant hybrid model (licensed FX partners + crypto-USD backend abstracted from users).
+  goals:
+    - Produce department-grade docs (Compliance, Product/UX, Engineering, Ops, Treasury, CX).
+    - Output flow diagrams for Path A (direct FX) and Path B (Bridge own-account abroad).
+    - Generate partner integration specs (Bridge, Lumx, BTG, Braza, Inter).
+    - Prepare go-live readiness artifacts.
+secrets:
+  OPENAI_API_KEY: ${OPENAI_API_KEY}
+  GOOGLE_CSE_ID: ${GOOGLE_CSE_ID}
+  GOOGLE_CSE_KEY: ${GOOGLE_CSE_KEY}
+  GITHUB_TOKEN: ${GITHUB_TOKEN}
+artifacts_dir: ./artifacts
+tools:
+  - name: web_search
+    provider: crewai_tools.WebSearchTool
+    args:
+      engine: "google"
+  - name: file_writer
+    provider: crewai_tools.FileWriterTool
+    args:
+      base_path: "./artifacts"
+  - name: mermaid_diagrams
+    provider: crewai_tools.MermaidTool
+  - name: markdown_linter
+    provider: crewai_tools.MarkdownLintTool
+  - name: json_schema_validator
+    provider: crewai_tools.JSONSchemaTool
+agents:
+  - id: orchestrator_pm
+    role: Program Manager / Orchestrator
+    goal: Coordinate agents, enforce scope/sequence, and sign off acceptance criteria.
+    backstory: >
+      Veteran PM shipping regulated fintech. Keeps teams aligned and documentation tight.
+    tools: [file_writer]
+    allow_delegation: true
+    constraints:
+      - Maintain fully Bacen-compliant hybrid as source of truth.
+      - No scope creep beyond MVP unless flagged as "Future Phase".
+    output_path: "00_orchestration/summary.md"
+  - id: compliance_agent
+    role: Head of Compliance (Brazil FX & AML)
+    goal: Lock Bacen-compliant flows, nature codes, checklists, and legal narratives.
+    backstory: >
+      Specialist in Law 14.286/2021, CMN 277, FX contracts, COAF/AML, RFB IN 1888/2019.
+    tools: [web_search, file_writer, markdown_linter]
+    constraints:
+      - Must include FX nature codes for Path A/B (import/export, own-account-abroad).
+      - Include doc retention, KYC/KYB, CBE triggers, audit trails.
+    output_path: "10_compliance/regulatory_framework.md"
+  - id: legal_agent
+    role: Fintech Counsel (Brazil)
+    goal: Draft ToS, Privacy Policy, Disclaimers aligned to compliant hybrid model.
+    backstory: >
+      Tech-savvy counsel for payments/FX; pragmatic and audit-friendly.
+    tools: [file_writer, markdown_linter]
+    constraints:
+      - No custody language; balances presented as fiat UI over compliant backend.
+      - Include disclosures around FX partners and quote expiry.
+    output_path: "10_compliance/legal_pack/"
+  - id: product_agent
+    role: Head of Product
+    goal: Turn compliance-approved flows into user journeys, specs, and wireframe briefs.
+    backstory: >
+      B2B fintech PM focused on speed and clarity, hiding crypto complexity from users.
+    tools: [file_writer, markdown_linter, mermaid_diagrams]
+    constraints:
+      - Include Path A (Direct FX) and Path B (Bridge) journeys.
+      - Bulk approvals included (not in hero copy).
+    output_path: "20_product/spec_mvp.md"
+  - id: ux_agent
+    role: Senior UX Designer
+    goal: Deliver wireframe descriptions and UI copy for MVP screens.
+    backstory: >
+      Builds fast, beautiful enterprise UX; approval flows are a specialty.
+    tools: [file_writer, markdown_linter, mermaid_diagrams]
+    constraints:
+      - No crypto jargon visible; simple “USD/BRL balance” only.
+    output_path: "20_product/wireframes/"
+  - id: eng_arch_agent
+    role: Solutions Architect
+    goal: System architecture & integration specs (Safe/Ethereum OR Squads/Solana), quote aggregator, security.
+    backstory: >
+      Scales regulated payment systems, loves clear diagrams and resiliency plans.
+    tools: [file_writer, mermaid_diagrams, markdown_linter, json_schema_validator]
+    constraints:
+      - Include Bridge, Lumx, BTG, Braza, Inter integrations + failover.
+      - Quote aggregator with expiry in seconds; show SLA scoring.
+    output_path: "30_engineering/architecture.md"
+  - id: backend_agent
+    role: Backend Lead
+    goal: API contracts (OpenAPI YAML) for Payments, FX Booking, Bridge, Wallet Ops.
+    backstory: >
+      API-first, writes clean specs with idempotency, retries, and webhooks.
+    tools: [file_writer, json_schema_validator, markdown_linter]
+    constraints:
+      - Provide OpenAPI 3.1 specs; include error models & idempotency keys.
+    output_path: "30_engineering/api/"
+  - id: security_agent
+    role: Security & Wallet Policy Lead
+    goal: Wallet policy (Safe or Squads), approvals, key management, audit logs.
+    backstory: >
+      Ex-bank security architect; MPC/multisig, HSMs, and SOX-style trails.
+    tools: [file_writer, markdown_linter]
+    constraints:
+      - Enforce WebAuthn/Passkey, device binding, maker-checker on policy edits.
+    output_path: "30_engineering/security_policy.md"
+  - id: ops_agent
+    role: Operations Manager
+    goal: Reconciliation SOPs, cut-offs, incident response, partner SLAs.
+    backstory: >
+      Keeps money moving; knows ACH/SWIFT/Pix timing cold.
+    tools: [file_writer, markdown_linter]
+    constraints:
+      - Include daily tri-ledger rec: on-chain, FX partner, Bridge.
+    output_path: "40_ops/ops_manual.md"
+  - id: treasury_agent
+    role: Treasury Strategist
+    goal: Liquidity buffers, partner allocation rules, pricing strategy.
+    backstory: >
+      Optimizes spreads & buffers without sacrificing UX speed.
+    tools: [file_writer, markdown_linter]
+    constraints:
+      - Model instant internal USD with delayed fiat settlement.
+    output_path: "50_finance/treasury_playbook.md"
+  - id: cx_agent
+    role: CX / Enablement Lead
+    goal: Onboarding guide, sales deck outline, referral loop plan.
+    backstory: >
+      Explains complex flows simply; drives adoption.
+    tools: [file_writer, markdown_linter, mermaid_diagrams]
+    constraints:
+      - Position Path A vs Path B clearly; zero-crypto language externally.
+    output_path: "60_cx/onboarding_and_sales.md"
+process:
+  entrypoint: orchestrator_pm
+  plan:
+    - task: 01_align_kickoff
+      owner: orchestrator_pm
+      description: Create project summary and folder structure.
+      outputs:
+        - 00_orchestration/summary.md
+    - task: 10_compliance_framework
+      owner: compliance_agent
+      depends_on: [01_align_kickoff]
+      description: Regulatory framework & checklists for Path A/B; FX nature codes; retention; CBE triggers.
+      outputs:
+        - 10_compliance/regulatory_framework.md
+    - task: 11_legal_pack
+      owner: legal_agent
+      depends_on: [10_compliance_framework]
+      description: Draft ToS, Privacy Policy, Disclaimers aligned to compliant hybrid model.
+      outputs:
+        - 10_compliance/legal_pack/terms_of_service.md
+        - 10_compliance/legal_pack/privacy_policy.md
+        - 10_compliance/legal_pack/disclaimers.md
+    - task: 20_product_spec
+      owner: product_agent
+      depends_on: [10_compliance_framework]
+      description: MVP feature spec incl. Path A/B, bulk approvals, quote expiries.
+      outputs:
+        - 20_product/spec_mvp.md
+    - task: 21_ux_wireframes
+      owner: ux_agent
+      depends_on: [20_product_spec]
+      description: Wireframe descriptions & UI copy for Deposit/Pay/Bridge/Withdraw/Approvals.
+      outputs:
+        - 20_product/wireframes/wireframes.md
+    - task: 30_engineering_arch
+      owner: eng_arch_agent
+      depends_on: [20_product_spec, 10_compliance_framework]
+      description: End-to-end architecture diagrams & integration spec (Bridge, Lumx, BTG, Braza, Inter).
+      outputs:
+        - 30_engineering/architecture.md
+        - 30_engineering/diagrams/architecture.mmd
+    - task: 31_backend_api
+      owner: backend_agent
+      depends_on: [30_engineering_arch]
+      description: OpenAPI specs for Payments, FX Booking, Bridge, Wallet Ops (+ webhooks).
+      outputs:
+        - 30_engineering/api/payments.yaml
+        - 30_engineering/api/fx_booking.yaml
+        - 30_engineering/api/bridge.yaml
+        - 30_engineering/api/wallet.yaml
+        - 30_engineering/api/webhooks.yaml
+    - task: 32_security_policy
+      owner: security_agent
+      depends_on: [30_engineering_arch]
+      description: Wallet policy, approvals, key mgmt, audit logs, Passkey/FaceID.
+      outputs:
+        - 30_engineering/security_policy.md
+    - task: 40_ops_manual
+      owner: ops_agent
+      depends_on: [31_backend_api, 32_security_policy]
+      description: Reconciliation SOPs, cut-offs, incident response, partner SLAs.
+      outputs:
+        - 40_ops/ops_manual.md
+    - task: 50_treasury_playbook
+      owner: treasury_agent
+      depends_on: [31_backend_api]
+      description: Liquidity buffers, partner allocation rules, pricing strategy.
+      outputs:
+        - 50_finance/treasury_playbook.md
+    - task: 60_cx_enablement
+      owner: cx_agent
+      depends_on: [20_product_spec]
+      description: Onboarding guide, sales deck outline, referral loop.
+      outputs:
+        - 60_cx/onboarding_and_sales.md
+    - task: 70_go_live_checklist
+      owner: orchestrator_pm
+      depends_on: [10_compliance_framework, 31_backend_api, 40_ops_manual, 50_treasury_playbook, 60_cx_enablement]
+      description: Consolidated go-live checklist and cutover plan.
+      outputs:
+        - 00_orchestration/go_live_checklist.md
+acceptance_criteria:
+  - All outputs linted (markdown_linter) and saved under ./artifacts.
+  - Architecture includes BOTH Path A (direct FX) and Path B (Bridge own-account abroad).
+  - API specs include idempotency strategy, error schemas, webhooks, and quote expiry semantics.
+  - Compliance doc lists nature codes and retention/CBE triggers with clear checklists.
+  - Ops manual defines tri-ledger reconciliation and partner cut-off SLAs.

@@ -1,0 +1,24 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install tools
+        run: |
+          pip install markdownlint-cli spectral-cli
+          npm install -g @mermaid-js/mermaid-cli || true
+      - name: Lint Markdown
+        run: markdownlint '**/*.md' || true
+      - name: Validate OpenAPI (if present)
+        run: |
+          if ls schemas/*.yaml 1> /dev/null 2>&1; then
+            npx spectral lint schemas/*.yaml || true
+          fi
