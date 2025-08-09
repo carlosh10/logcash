@@ -1,0 +1,11 @@
+{
+  "name": "logcash",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "dev": "echo 'Run npm run dev:frontend and dev:backend in separate terminals'",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev"
+  }
+}
